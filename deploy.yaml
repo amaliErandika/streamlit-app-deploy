@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy Streamlit App on ECS Fargate
+
+Parameters:
+  AppName:
+    Type: String
+    Default: streamlit-app
+
+Resources:
+
+  StreamlitCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref AppName
+
+  StreamlitTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  StreamlitTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref AppName
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !GetAtt StreamlitTaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: !Ref AppName
+          Image: <ECR_IMAGE_URI>  # Replace dynamically during CodeBuild
+          Essential: true
+          PortMappings:
+            - ContainerPort: 8501
+
+  StreamlitService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref StreamlitCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref StreamlitTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: <SUBNET_IDS>  # Add your subnet IDs
+          SecurityGroups: <SECURITY_GROUP_IDS>
