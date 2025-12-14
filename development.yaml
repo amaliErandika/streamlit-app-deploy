@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Simple Streamlit Deployment on ECS Fargate (Development)
+
+Parameters:
+  AppName:
+    Type: String
+    Default: streamlit-dev
+
+Resources:
+
+  # ECS Cluster
+  StreamlitCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref AppName
+
+  # IAM Role for ECS
+  StreamlitExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  # Security Group
+  StreamlitSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Streamlit access
+      VpcId: !Ref AWS::NoValue
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8501
+          ToPort: 8501
+          CidrIp: 0.0.0.0/0
+
+  # Task Definition
+  StreamlitTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: streamlit-task
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 256
+      Memory: 512
+      ExecutionRoleArn: !GetAtt StreamlitExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: streamlit
+          Image: public.ecr.aws/docker/library/python:3.9
+          Essential: true
+          Command:
+            - sh
+            - -c
+            - |
+              pip install streamlit && \
+              streamlit hello --server.port 8501 --server.address 0.0.0.0
+          PortMappings:
+            - ContainerPort: 8501
+
+  # ECS Service
+  StreamlitService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref StreamlitCluster
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref StreamlitTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - subnet-01ea7426216b1dd2a
+          SecurityGroups:
+            - !Ref StreamlitSecurityGroup
+
+Outputs:
+  ECSClusterName:
+    Description: ECS Cluster Name
+    Value: !Ref StreamlitCluster
