@@ -33,7 +33,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow Streamlit access
-      VpcId: !Ref AWS::NoValue
+      VpcId: vpc-048992bf178f84f89
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 8501
