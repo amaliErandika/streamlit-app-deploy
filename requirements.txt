@@ -1,3 +1,4 @@
 streamlit
 pandas
 elevenlabs
+huggingface_hub==0.20.3
