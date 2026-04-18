@@ -21,11 +21,10 @@ from huggingface_hub import HfApi, hf_hub_download, HfFolder
 # -----------------------------
 # Load environment variables
 # -----------------------------
-load_dotenv()
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-HF_TOKEN = os.getenv("HF_TOKEN")
-HF_DATASET_REPO = os.getenv("HF_DATASET_REPO")        
-HF_DATASET_PATH = os.getenv("HF_DATASET_PATH", "responses.csv")  
+ELEVENLABS_API_KEY = st.secrets["ELEVENLABS_API_KEY"]
+HF_TOKEN = st.secrets["HF_TOKEN"]
+HF_DATASET_REPO = st.secrets["HF_DATASET_REPO"]
+HF_DATASET_PATH = st.secrets.get("HF_DATASET_PATH", "responses.csv") 
 
 # Basic validations
 if not ELEVENLABS_API_KEY:
@@ -51,14 +50,13 @@ st.set_page_config(page_title="Empathetic vs. Neutral AI Voice Study", page_icon
 def play_voice(text: str, voice_name: str):
     """Generate & play audio from ElevenLabs dynamically."""
     try:
-        voices_response = client.voices.get_all()
-        voice_map = {v.name: v for v in voices_response.voices}
+        voices = get_voices()
+        voice_map = {v.name: v for v in voices}
 
         if voice_name not in voice_map:
             st.error(f"Voice '{voice_name}' not found. Choose one from the dropdown.")
             return
 
-        # Convert text to speech
         audio_generator = client.text_to_speech.convert(
             voice_id=voice_map[voice_name].voice_id,
             model_id="eleven_flash_v2_5",
@@ -66,14 +64,11 @@ def play_voice(text: str, voice_name: str):
             output_format="mp3_22050_32"
         )
 
-        # Collect chunks into one file
         audio_bytes = b"".join(audio_generator)
-
         st.audio(io.BytesIO(audio_bytes), format="audio/mpeg")
 
     except Exception as e:
         st.error(f"Voice generation failed: {e}")
-
 def load_existing_hf_csv(repo_id: str, path_in_repo: str) -> pd.DataFrame:
     try:
         local_path = hf_hub_download(
