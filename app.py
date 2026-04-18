@@ -50,13 +50,14 @@ st.set_page_config(page_title="Empathetic vs. Neutral AI Voice Study", page_icon
 def play_voice(text: str, voice_name: str):
     """Generate & play audio from ElevenLabs dynamically."""
     try:
-        voices = get_voices()
-        voice_map = {v.name: v for v in voices}
+        voices_response = client.voices.get_all()
+        voice_map = {v.name: v for v in voices_response.voices}
 
         if voice_name not in voice_map:
             st.error(f"Voice '{voice_name}' not found. Choose one from the dropdown.")
             return
 
+        # Convert text to speech
         audio_generator = client.text_to_speech.convert(
             voice_id=voice_map[voice_name].voice_id,
             model_id="eleven_flash_v2_5",
@@ -64,11 +65,14 @@ def play_voice(text: str, voice_name: str):
             output_format="mp3_22050_32"
         )
 
+        # Collect chunks into one file
         audio_bytes = b"".join(audio_generator)
+
         st.audio(io.BytesIO(audio_bytes), format="audio/mpeg")
 
     except Exception as e:
         st.error(f"Voice generation failed: {e}")
+
 def load_existing_hf_csv(repo_id: str, path_in_repo: str) -> pd.DataFrame:
     try:
         local_path = hf_hub_download(
