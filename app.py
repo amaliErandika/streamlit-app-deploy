@@ -348,31 +348,38 @@ default_voice_metadata = {
 # Empathetic Voice Session
 # -----------------------------
 if st.session_state["step"] == "session_emp":
-    st.header("Empathetic Voice Session")
-    st.write("""Instructions: For each voice session, please rate the following statements about that voice on a 5-point scale:""")
 
-    # Fetch all ElevenLabs voices
+    st.header("Empathetic Voice Session")
+
+    st.write("""
+    Instructions: For each voice session, please rate the following statements about that voice on a 5-point scale:
+    """)
+
     voices = client.voices.get_all().voices
 
-    # Build labels with fallback to hardcoded metadata
     voice_labels = {}
+
     for v in voices:
         meta = default_voice_metadata.get(v.name, {})
+
         gender = v.labels.get("gender") or meta.get("gender", "Unknown")
         accent = v.labels.get("accent") or meta.get("accent", "Unknown")
-        desc   = v.labels.get("description") or meta.get("description", "No description available")
-        label  = f"{v.name} — {gender} | {accent} | {desc}"
+        desc = v.labels.get("description") or meta.get("description", "No description available")
+
+        label = f"{v.name} — {gender} | {accent} | {desc}"
+
         voice_labels[label] = v
 
-    # Select empathetic voice
+
     emp_voice_label = st.selectbox(
         "Choose empathetic voice:",
         list(voice_labels.keys()),
         key="emp_voice_select"
     )
+
     emp_voice = voice_labels[emp_voice_label].name
 
-    # Text area for empathetic script
+
     emp_script = st.text_area(
         "Empathetic script:",
         """Hi, I’m glad you’re here. I know life can feel overwhelming sometimes, 
@@ -383,66 +390,91 @@ You deserve kindness, and I’m proud of you for taking this moment for yourself
         key="emp_script_text"
     )
 
-    # Play button
+
     if st.button("▶ Play Empathetic Voice", key="emp_play_btn"):
         play_voice(emp_script, emp_voice)
 
+
     st.subheader("AI Voice Interaction Questions (Empathetic Voice)")
 
-for i, (key, question) in enumerate(empathetic_questions.items(), start=11):
-    answer = st.radio(
-        f"Q{i}. {question}",
-        five_scale,
-        key=key,
-        horizontal=True
-    )
 
-    # Save answer
-    st.session_state["emp"][f"q{i-10}"] = answer
+    for i, (key, question) in enumerate(empathetic_questions.items(), start=1):
+
+        answer = st.radio(
+            f"{key}. {question}",
+            five_scale,
+            key=f"emp_radio_{i}",
+            horizontal=True
+        )
+
+        # SAVE CORRECTLY
+        st.session_state["emp"][f"q{i}"] = answer
+
+
 
     st.subheader("During-Interaction Anxiety (State Anxiety)")
 
-    st.write("""Q19.After this empathetic voice session, please indicate how anxious you felt during the session by selecting a number from 1 to 5:""")
+
+    st.write("""
+    Q19.After this empathetic voice session, please indicate how anxious you felt during the session by selecting a number from 1 to 5:
+    """)
+
 
     st.session_state["emp_state_anxiety"] = st.radio(
-        "",
-        [1, 2, 3, 4, 5],
-        format_func=lambda x: f"{x} = {['Not at all anxious','Slightly anxious','Moderately anxious','Very anxious','Extremely anxious'][x-1]}"
+        "Anxiety level",
+        [1,2,3,4,5],
+        format_func=lambda x:
+        f"{x} = {['Not at all anxious','Slightly anxious','Moderately anxious','Very anxious','Extremely anxious'][x-1]}",
+        key="emp_anxiety"
     )
 
 
-    navigation_buttons(prev_step="baseline", next_step="session_neu")
-
+    navigation_buttons(
+        prev_step="baseline",
+        next_step="session_neu"
+    )
 
 # -----------------------------
 # Neutral Voice Session
-# -----------------------------   
+# -----------------------------
 if st.session_state["step"] == "session_neu":
-    st.header("Neutral / Robotic Voice Session")
-    st.write("""Instructions: For each voice session, please rate the following statements about that voice on a 5-point scale:""")
 
-    # Fetch all ElevenLabs voices
+    st.header("Neutral / Robotic Voice Session")
+
+    st.write("""
+    Instructions: For each voice session, please rate the following statements about that voice on a 5-point scale:
+    """)
+
+
     voices = client.voices.get_all().voices
 
-    # Build labels with fallback to hardcoded metadata
     voice_labels = {}
+
     for v in voices:
+
         meta = default_voice_metadata.get(v.name, {})
-        gender = v.labels.get("gender") or meta.get("gender", "Unknown")
-        accent = v.labels.get("accent") or meta.get("accent", "Unknown")
-        desc   = v.labels.get("description") or meta.get("description", "No description available")
-        label  = f"{v.name} — {gender} | {accent} | {desc}"
+
+        gender = v.labels.get("gender") or meta.get("gender","Unknown")
+        accent = v.labels.get("accent") or meta.get("accent","Unknown")
+        desc = v.labels.get("description") or meta.get("description","No description available")
+
+        label = f"{v.name} — {gender} | {accent} | {desc}"
+
         voice_labels[label] = v
 
-    # Select neutral voice
+
+
     neu_voice_label = st.selectbox(
         "Choose neutral voice:",
         list(voice_labels.keys()),
         key="neu_voice_select"
     )
+
+
     neu_voice = voice_labels[neu_voice_label].name
 
-   # Text area for neutral script
+
+
     neu_script = st.text_area(
         "Neutral script:",
         """Hello, thank you for participating in this session. 
@@ -454,35 +486,51 @@ Your participation is valuable, and your responses will help us better understan
         key="neu_script_text"
     )
 
-    # Play button
+
     if st.button("▶ Play Neutral Voice", key="neu_play_btn"):
         play_voice(neu_script, neu_voice)
 
+
+
     st.subheader("AI Voice Interaction Questions (Neutral Voice)")
 
-for i, (key, question) in enumerate(neutral_questions.items(), start=20):
-    answer = st.radio(
-        f"Q{i}. {question}",
-        five_scale,
-        key=key,
-        horizontal=True
-    )
 
-    # Save answer
-    st.session_state["neu"][f"q{i-19}"] = answer
+    for i, (key, question) in enumerate(neutral_questions.items(), start=1):
+
+        answer = st.radio(
+            f"{key}. {question}",
+            five_scale,
+            key=f"neu_radio_{i}",
+            horizontal=True
+        )
+
+
+        # SAVE CORRECTLY
+        st.session_state["neu"][f"q{i}"] = answer
+
+
 
     st.subheader("During-Interaction Anxiety (State Anxiety)")
 
-    st.write("""Q28.After this robotic voice session, please indicate how anxious you felt during the session by selecting a number from 1 to 5:""")
+
+    st.write("""
+    Q28.After this robotic voice session, please indicate how anxious you felt during the session by selecting a number from 1 to 5:
+    """)
+
 
     st.session_state["neu_state_anxiety"] = st.radio(
-        "",
-        [1, 2, 3, 4, 5],
-        format_func=lambda x: f"{x} = {['Not at all anxious','Slightly anxious','Moderately anxious','Very anxious','Extremely anxious'][x-1]}"
+        "Anxiety level",
+        [1,2,3,4,5],
+        format_func=lambda x:
+        f"{x} = {['Not at all anxious','Slightly anxious','Moderately anxious','Very anxious','Extremely anxious'][x-1]}",
+        key="neu_anxiety"
     )
 
-    navigation_buttons(prev_step="session_emp", next_step="open")
 
+    navigation_buttons(
+        prev_step="session_emp",
+        next_step="open"
+    )
 
 
 # -----------------------------
