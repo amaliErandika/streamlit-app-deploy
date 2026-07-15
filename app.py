@@ -388,8 +388,17 @@ You deserve kindness, and I’m proud of you for taking this moment for yourself
         play_voice(emp_script, emp_voice)
 
     st.subheader("AI Voice Interaction Questions (Empathetic Voice)")
-    for i, (key, question) in enumerate(empathetic_questions.items(), start=11):
-        st.radio(f"Q{i}. {question}", five_scale, key=key, horizontal=True)
+
+for i, (key, question) in enumerate(empathetic_questions.items(), start=11):
+    answer = st.radio(
+        f"Q{i}. {question}",
+        five_scale,
+        key=key,
+        horizontal=True
+    )
+
+    # Save answer
+    st.session_state["emp"][f"q{i-10}"] = answer
 
     st.subheader("During-Interaction Anxiety (State Anxiety)")
 
@@ -450,8 +459,17 @@ Your participation is valuable, and your responses will help us better understan
         play_voice(neu_script, neu_voice)
 
     st.subheader("AI Voice Interaction Questions (Neutral Voice)")
-    for i, (key, question) in enumerate(neutral_questions.items(), start=20):
-        st.radio(f"Q{i}. {question}", five_scale, key=key, horizontal=True)
+
+for i, (key, question) in enumerate(neutral_questions.items(), start=20):
+    answer = st.radio(
+        f"Q{i}. {question}",
+        five_scale,
+        key=key,
+        horizontal=True
+    )
+
+    # Save answer
+    st.session_state["neu"][f"q{i-19}"] = answer
 
     st.subheader("During-Interaction Anxiety (State Anxiety)")
 
