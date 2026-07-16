@@ -337,7 +337,8 @@ You deserve kindness, and I’m proud of you for taking this moment for yourself
         answer = st.radio(
             f"Q{i}. {question}",
             five_scale,
-            horizontal=True
+            horizontal=True,
+            key=f"emp_q{i-10}"
         )
         # Save answer
         st.session_state["emp"][f"q{i-10}"] = answer
@@ -393,7 +394,8 @@ Your participation is valuable, and your responses will help us better understan
         answer = st.radio(
             f"Q{i}. {question}",
             five_scale,
-            horizontal=True
+            horizontal=True,
+            key=f"neu_q{i-19}"
         )
         # Save answer
         st.session_state["neu"][f"q{i-19}"] = answer
