@@ -249,7 +249,7 @@ before the voice sessions.
     st.session_state["single_mood"] = st.radio("Q10.Overall, right now I feel… (1=very negative, 5=very positive):", [1,2,3,4,5], horizontal=True)
     navigation_buttons(prev_step="demographics", next_step="session_emp")
 # Likert scale options
-five_scale = ["1 = Strongly Disagree", "2", "3", "4", "5 = Strongly Agree"]
+five_scale = [1,2,3,4,5]
 # Define questions
 empathetic_questions = {
     "Q11": "I felt the voice was warm and caring.",
@@ -334,14 +334,13 @@ You deserve kindness, and I’m proud of you for taking this moment for yourself
         play_voice(emp_script, emp_voice)
     st.subheader("AI Voice Interaction Questions (Empathetic Voice)")
     for i, (key, question) in enumerate(empathetic_questions.items(), start=11):
-        answer = st.radio(
+        st.session_state["emp"][f"q{i-10}"] = st.radio(
             f"Q{i}. {question}",
             five_scale,
             horizontal=True,
+            format_func=lambda x:{1:"Strongly Disagree",2:"Disagree",3:"Neutral",4:"Agree",5:"Strongly Agree"}[x],
             key=f"emp_q{i-10}"
         )
-        # Save answer
-        st.session_state["emp"][f"q{i-10}"] = answer
     st.subheader("During-Interaction Anxiety (State Anxiety)")
     st.write("""Q19.After this empathetic voice session, please indicate how anxious you felt during the session by selecting a number from 1 to 5:""")
     st.session_state["emp_state_anxiety"] = st.radio(
@@ -391,14 +390,13 @@ Your participation is valuable, and your responses will help us better understan
         play_voice(neu_script, neu_voice)
     st.subheader("AI Voice Interaction Questions (Neutral Voice)")
     for i, (key, question) in enumerate(neutral_questions.items(), start=20):
-        answer = st.radio(
+        st.session_state["neu"][f"q{i-19}"] = st.radio(
             f"Q{i}. {question}",
             five_scale,
             horizontal=True,
+            format_func=lambda x:{1:"Strongly Disagree",2:"Disagree",3:"Neutral",4:"Agree",5:"Strongly Agree"}[x],
             key=f"neu_q{i-19}"
         )
-        # Save answer
-        st.session_state["neu"][f"q{i-19}"] = answer
     st.subheader("During-Interaction Anxiety (State Anxiety)")
     st.write("""Q28.After this robotic voice session, please indicate how anxious you felt during the session by selecting a number from 1 to 5:""")
     st.session_state["neu_state_anxiety"] = st.radio(
@@ -440,7 +438,17 @@ if st.session_state["step"] == "open":
 if st.session_state["step"] == "review":
     st.header("Review & Submit")
     st.write("Click **Submit** to upload your responses")
-    if st.button("Submit"):
+    if "submitted" not in st.session_state:
+        st.session_state["submitted"]=False
+    if st.button("Submit", disabled=st.session_state["submitted"]):
+        st.session_state["submitted"]=True
+        missing=[]
+        for d in ("emp","neu"):
+            for k,v in st.session_state[d].items():
+                if v is None: missing.append(f"{d}:{k}")
+        if missing:
+            st.error("Please complete all required questions before submitting.")
+            st.stop()
         record = {
             "participant_id": st.session_state["participant_id"], 
             "start_ts_utc": st.session_state["start_ts"], 
@@ -470,5 +478,6 @@ if st.session_state["step"] == "review":
             upload_csv_to_hf(updated_df, HF_DATASET_REPO, HF_DATASET_PATH)
             st.success("Submitted successfully!")
             #st.info(f"Repo: {HF_DATASET_REPO} | File: {HF_DATASET_PATH}")
+            st.rerun()
         except Exception as e:
             st.error(f"Upload failed: {e}")
