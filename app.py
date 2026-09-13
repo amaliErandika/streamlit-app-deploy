@@ -15,10 +15,10 @@ from huggingface_hub import HfApi, hf_hub_download, HfFolder
 # -----------------------------
 # Load environment variables
 # -----------------------------
-ELEVENLABS_API_KEY = st.secrets["ELEVENLABS_API_KEY"]
-HF_TOKEN = st.secrets["HF_TOKEN"]
-HF_DATASET_REPO = st.secrets["HF_DATASET_REPO"]
-HF_DATASET_PATH = st.secrets.get("HF_DATASET_PATH", "responses.csv") 
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN")
+HF_DATASET_REPO = os.getenv("HF_DATASET_REPO")
+HF_DATASET_PATH = os.getenv("HF_DATASET_PATH", "responses.csv")
 # Basic validations
 if not ELEVENLABS_API_KEY:
     st.error("Missing ELEVENLABS_API_KEY in .env")
